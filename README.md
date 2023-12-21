@@ -67,6 +67,15 @@ user@os:~/home/OperaGX-DiscordNitro-Gen$ cargo run
 - Error handling in the console.
 
 Stay tuned! Follow me or star the project to get notified when changes are made!
+<br>
+
+## Star Stats
+
+![star_stats](https://api.star-history.com/svg?repos=Kisakay/OperaGX-DiscordNitro-Gen&type=Date)
+
+## Note
+
+This software is designed for educational purposes exclusively. Please use it responsibly and adhere to the terms of service of both Discord and OperaGX.
 
 ## Inspiration
 
