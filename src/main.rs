@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -7,8 +7,9 @@ use std::time::Duration;
 use rand::seq::SliceRandom;
 use reqwest::blocking::Client;
 use serde_json::json;
-use std::fs::OpenOptions;
 use uuid::Uuid;
+
+use proctitle::set_title;
 
 struct Counter {
     count: usize,
@@ -73,13 +74,12 @@ fn gen(proxy: Option<String>, counter: Arc<Mutex<Counter>>) {
 
                             let mut counter = counter.lock().unwrap();
                             counter.count += 1;
-                            drop(counter); // Release the lock before println and file write
-                            println!(
-                                "{} {} Generated Promo Link : {}",
-                                get_timestamp(),
-                                GREEN,
-                                cleanify_link
-                            );
+
+                            set_title(format!(
+                                "OperaGX-DiscordNitro-Gen by Kisakay | Generated: {} | Proxy: {:?}",
+                                counter.count,
+                                proxy.clone()
+                            ));
 
                             if let Ok(mut file) = OpenOptions::new()
                                 .create(true)
@@ -89,6 +89,14 @@ fn gen(proxy: Option<String>, counter: Arc<Mutex<Counter>>) {
                             {
                                 writeln!(file, "{}", cleanify_link).ok();
                             }
+
+                            drop(counter); // Release the lock before println and file write
+                            println!(
+                                "{} {} Generated Promo Link : {}",
+                                get_timestamp(),
+                                GREEN,
+                                cleanify_link
+                            );
                         }
                     }
                 } else if response.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {
