@@ -1,5 +1,8 @@
 # OperaGX Discord Nitro Generator
 
+![img](./imgs/banner.png)
+Edited with KolourPaint lmao
+
 An abusive generator of Discord Nitro with special OperaGX promotions!
 
 ## Does it really work?
