@@ -29,7 +29,6 @@ static GREEN: &str = "\x1b[32m(+)\x1b[0m";
 static YELLOW: &str = "\x1b[33m(!)\x1b[0m";
 
 fn generate_random_string(length: usize) -> String {
-    // Générer une chaîne aléatoire hexadécimale
     let random_string: String = (0..length)
         .map(|_| format!("{:02x}", rand::thread_rng().gen_range(0..=255)))
         .collect();
@@ -37,13 +36,10 @@ fn generate_random_string(length: usize) -> String {
 }
 
 fn create_hash(input_string: &str) -> String {
-    // Créer un objet de hachage SHA-256
     let mut sha256 = Sha256::new();
 
-    // Mettre à jour le hachage avec l'entrée convertie en bytes
     sha256.update(input_string.as_bytes());
 
-    // Obtenir la représentation hexadécimale du hachage
     let hashed_value = sha256.finalize();
     format!("{:x}", hashed_value)
 }
@@ -161,7 +157,6 @@ fn gen(proxy: Option<String>, counter: Arc<Mutex<Counter>>) {
             }
         }
 
-        // Pause entre les requêtes
         thread::sleep(Duration::from_secs(5));
     }
 }
