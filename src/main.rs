@@ -5,9 +5,11 @@ use std::thread;
 use std::time::Duration;
 
 use rand::seq::SliceRandom;
+use rand::Rng;
 use reqwest::blocking::Client;
+use reqwest::header;
 use serde_json::json;
-use uuid::Uuid;
+use sha2::{Digest, Sha256};
 
 use proctitle::set_title;
 
@@ -26,6 +28,26 @@ static BLUE: &str = "\x1b[34m(+)\x1b[0m";
 static GREEN: &str = "\x1b[32m(+)\x1b[0m";
 static YELLOW: &str = "\x1b[33m(!)\x1b[0m";
 
+fn generate_random_string(length: usize) -> String {
+    // Générer une chaîne aléatoire hexadécimale
+    let random_string: String = (0..length)
+        .map(|_| format!("{:02x}", rand::thread_rng().gen_range(0..=255)))
+        .collect();
+    random_string
+}
+
+fn create_hash(input_string: &str) -> String {
+    // Créer un objet de hachage SHA-256
+    let mut sha256 = Sha256::new();
+
+    // Mettre à jour le hachage avec l'entrée convertie en bytes
+    sha256.update(input_string.as_bytes());
+
+    // Obtenir la représentation hexadécimale du hachage
+    let hashed_value = sha256.finalize();
+    format!("{:x}", hashed_value)
+}
+
 fn get_timestamp() -> String {
     let time_idk = chrono::Local::now().format("%H:%M:%S").to_string();
     let timestamp = format!("[\x1b[90m{}\x1b[0m]", time_idk);
@@ -36,28 +58,52 @@ fn gen(proxy: Option<String>, counter: Arc<Mutex<Counter>>) {
     loop {
         let url = "https://api.discord.gx.games/v1/direct-fulfillment";
 
+        let random_string = generate_random_string(64);
+        let hashed_result = create_hash(&random_string);
+
         let data = json!({
-            "partnerUserId": Uuid::new_v4().to_string(),
+            "partnerUserId": &hashed_result,
         });
 
+        let mut headers = header::HeaderMap::new();
+        headers.insert(header::USER_AGENT, header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 OPR/105.0.0.0"));
+        headers.insert(header::ACCEPT, header::HeaderValue::from_static("*/*"));
+        headers.insert(
+            header::ACCEPT_LANGUAGE,
+            header::HeaderValue::from_static("fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7"),
+        );
+        headers.insert(
+            header::CONTENT_TYPE,
+            header::HeaderValue::from_static("application/json"),
+        );
+        headers.insert(
+            header::ORIGIN,
+            header::HeaderValue::from_static("https://www.opera.com"),
+        );
+        headers.insert(
+            header::REFERER,
+            header::HeaderValue::from_static("https://www.opera.com/"),
+        );
+        
         let client = match &proxy {
             Some(p) => {
                 let credentials: Vec<&str> = p.split('@').collect();
                 let user_pass: Vec<&str> = credentials[0].split(':').collect();
                 let host_port: Vec<&str> = credentials[1].split(':').collect();
-
+        
                 let formatted_proxy = format!(
                     "http://{}:{}@{}:{}",
                     user_pass[0], user_pass[1], host_port[0], host_port[1]
                 );
-
+        
                 Client::builder()
                     .proxy(reqwest::Proxy::http(&formatted_proxy).unwrap())
                     .proxy(reqwest::Proxy::https(&formatted_proxy).unwrap())
+                    .default_headers(headers)
                     .build()
                     .unwrap()
             }
-            None => Client::new(),
+            None => Client::builder().default_headers(headers).build().unwrap(),
         };
 
         match client.post(url).json(&data).send() {

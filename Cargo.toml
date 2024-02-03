@@ -13,3 +13,4 @@ rand = "0.8.5"
 chrono = "0.4.15"
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
 proctitle = "0.1.1"
+sha2 = "0.10.8"
